@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from local_search.config import LocalSearchStudyConfig
-from local_search.data_loader import load_local_search_resources
+from archive.local_search.config import LocalSearchStudyConfig
+from archive.local_search.data_loader import load_local_search_resources
 
 
 def main() -> None:

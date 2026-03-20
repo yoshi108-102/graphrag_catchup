@@ -6,4 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "graphrag>=3.0.6",
+    "nano-graphrag>=0.0.8",
+    "networkx>=3.6.1",
+    "pyvis>=0.3.2",
+    "setuptools>=70,<81",
 ]

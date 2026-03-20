@@ -4,9 +4,9 @@ import argparse
 import asyncio
 from pathlib import Path
 
-from local_search.config import LocalSearchStudyConfig
-from local_search.data_loader import load_local_search_resources
-from local_search.engine import (
+from archive.local_search.config import LocalSearchStudyConfig
+from archive.local_search.data_loader import load_local_search_resources
+from archive.local_search.engine import (
     build_context_builder,
     build_local_search_engine,
     build_text_models,

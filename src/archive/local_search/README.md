@@ -12,17 +12,17 @@
 
 ## ディレクトリ構成
 
-- `src/local_search/config.py`
+- `src/archive/local_search/config.py`
   - パス・テーブル名・community level などの設定を集約
-- `src/local_search/data_loader.py`
+- `src/archive/local_search/data_loader.py`
   - `output/*.parquet` と `output/lancedb` を読み込み、Local Search 用リソースを生成
-- `src/local_search/engine.py`
+- `src/archive/local_search/engine.py`
   - `settings.yaml` からモデル設定を読み込み、`LocalSearchMixedContext` 構築、`LocalSearch`/`LocalQuestionGen` 生成
-- `src/local_search/examples/step1_load_context.py`
+- `src/archive/local_search/examples/step1_load_context.py`
   - Step 1: データ読み込み確認
-- `src/local_search/examples/step2_run_local_search.py`
+- `src/archive/local_search/examples/step2_run_local_search.py`
   - Step 2: Local Search 実行と context inspection
-- `src/local_search/examples/step3_question_generation.py`
+- `src/archive/local_search/examples/step3_question_generation.py`
   - Step 3: 候補質問生成
 
 ## 事前準備
@@ -39,7 +39,7 @@
 ### Step 1: 入力データの確認
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m local_search.examples.step1_load_context
+PYTHONPATH=src .venv/bin/python -m archive.local_search.examples.step1_load_context
 ```
 
 見るポイント:
@@ -50,7 +50,7 @@ PYTHONPATH=src .venv/bin/python -m local_search.examples.step1_load_context
 ### Step 2: Local Search 実行
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m local_search.examples.step2_run_local_search \
+PYTHONPATH=src .venv/bin/python -m archive.local_search.examples.step2_run_local_search \
   --query "Tell me about Agent Mercer"
 ```
 
@@ -62,7 +62,7 @@ PYTHONPATH=src .venv/bin/python -m local_search.examples.step2_run_local_search 
 ### Step 3: Question Generation
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m local_search.examples.step3_question_generation \
+PYTHONPATH=src .venv/bin/python -m archive.local_search.examples.step3_question_generation \
   --history "Tell me about Agent Mercer" "What happens in Dulce military base?" \
   --count 5
 ```

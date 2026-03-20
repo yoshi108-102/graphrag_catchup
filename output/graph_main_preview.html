@@ -1,0 +1,171 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 880px;
+                 background-color: #f8fafc;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"font": {"color": "#111827"}, "group": "ORGANIZATION", "id": "\"PROJECT GUTENBERG\"", "label": "PROJECT GUTENBERG", "shape": "dot", "title": "type: ORGANIZATION\u003cbr\u003edegree: 1\u003cbr\u003eProject Gutenberg is an initiative to archive and provide free access to books, including \u0027A Christmas Carol\u0027, as an eBook.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"UNITED STATES\"", "label": "UNITED STATES", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 1\u003cbr\u003eThe United States is mentioned as a location relevant to accessing the eBook version of \u0027A Christmas Carol\u0027.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"CHARLES DICKENS\"", "label": "CHARLES DICKENS", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 1\u003cbr\u003eCharles Dickens is the author of \u0027A Christmas Carol\u0027, a classic Christmas story.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"ARTHUR RACKHAM\"", "label": "ARTHUR RACKHAM", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 1\u003cbr\u003eArthur Rackham provided illustrations for the 1915 edition of \u0027A Christmas Carol\u0027.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "ORGANIZATION", "id": "\"J. B. LIPPINCOTT COMPANY\"", "label": "J. B. LIPPINCOTT COMPANY", "shape": "dot", "title": "type: ORGANIZATION\u003cbr\u003edegree: 2\u003cbr\u003eJ. B. Lippincott Company is the publisher of the 1915 edition of \u0027A Christmas Carol\u0027 in Philadelphia and New York.", "value": 31.0}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"PHILADELPHIA\"", "label": "PHILADELPHIA", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 0\u003cbr\u003ePhiladelphia is one of the locations where \u0027A Christmas Carol\u0027 was published by J. B. Lippincott Company.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"NEW YORK\"", "label": "NEW YORK", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 0\u003cbr\u003eNew York is one of the locations where \u0027A Christmas Carol\u0027 was published by J. B. Lippincott Company.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"GHOST OF JACOB MARLEY\"", "label": "GHOST OF JACOB MARLEY", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 1\u003cbr\u003eThe Ghost of Jacob Marley is a spectre and former business partner of Ebenezer Scrooge in \u0027A Christmas Carol\u0027.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"EBENEZER SCROOGE\"", "label": "EBENEZER SCROOGE", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 2\u003cbr\u003eEbenezer Scrooge is a central character in \u0027A Christmas Carol\u0027, known for being a grasping, covetous old man.", "value": 31.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"BOB CRATCHIT\"", "label": "BOB CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 1\u003cbr\u003eBob Cratchit is the clerk to Ebenezer Scrooge and a character in \u0027A Christmas Carol\u0027.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"GHOST OF CHRISTMAS PAST\"", "label": "GHOST OF CHRISTMAS PAST", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eThe Ghost of Christmas Past is a phantom that shows its viewer events from the past in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"GHOST OF CHRISTMAS PRESENT\"", "label": "GHOST OF CHRISTMAS PRESENT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eThe Ghost of Christmas Present is a spirit characterized by kindness and generosity in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"GHOST OF CHRISTMAS YET TO COME\"", "label": "GHOST OF CHRISTMAS YET TO COME", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eThe Ghost of Christmas Yet to Come is an apparition showing future events in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"FRED\"", "label": "FRED", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eFred is Scrooge\u0027s nephew and a character in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"TIM CRATCHIT\"", "label": "TIM CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eTim Cratchit, often referred to as Tiny Tim, is the youngest son of Bob Cratchit and is depicted as a sickly but optimistic child.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"PETER CRATCHIT\"", "label": "PETER CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003ePeter Cratchit is the son of Bob Cratchit and a character in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MR. FEZZIWIG\"", "label": "MR. FEZZIWIG", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMr. Fezziwig is portrayed as a kind-hearted, jovial old merchant and former employer of Ebenezer Scrooge.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"JOE\"", "label": "JOE", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eJoe is a marine-store dealer and receiver of stolen goods in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MR. TOPPER\"", "label": "MR. TOPPER", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMr. Topper is a bachelor character who appears at a Christmas party in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"DICK WILKINS\"", "label": "DICK WILKINS", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eDick Wilkins is a fellow apprentice of Ebenezer Scrooge in his younger days.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"BELLE\"", "label": "BELLE", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eBelle is a character in \u0027A Christmas Carol\u0027 who was Scrooge\u0027s old sweetheart, representing lost love and opportunities.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"CAROLINE\"", "label": "CAROLINE", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eCaroline is the wife of one of Scrooge\u0027s debtors, mentioned in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MRS. CRATCHIT\"", "label": "MRS. CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMrs. Cratchit is the wife of Bob Cratchit, featured in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"BELINDA CRATCHIT\"", "label": "BELINDA CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eBelinda Cratchit is one of the daughters of Bob and Mrs. Cratchit in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MARTHA CRATCHIT\"", "label": "MARTHA CRATCHIT", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMartha Cratchit is another daughter of Bob and Mrs. Cratchit in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MRS. DILBER\"", "label": "MRS. DILBER", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMrs. Dilber is a laundress who works for Scrooge in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"FAN\"", "label": "FAN", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eFan is the sister of Ebenezer Scrooge in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MRS. FEZZIWIG\"", "label": "MRS. FEZZIWIG", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eMrs. Fezziwig is described as the worthy partner of Mr. Fezziwig in \u0027A Christmas Carol\u0027.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"MARLEY\"", "label": "MARLEY", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 1\u003cbr\u003eMarley, referred to as \u0027Old Marley,\u0027 was Scrooge\u0027s business partner and is deceased. He was involved in the business known as Scrooge and Marley.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"SCROOGE\"", "label": "SCROOGE", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 4\u003cbr\u003eScrooge is a central character known for his miserly and solitary nature. He was Marley\u0027s business partner and continues to operate their enterprise after Marley\u0027s death.", "value": 48.0}, {"font": {"color": "#111827"}, "group": "ORGANIZATION", "id": "\"SCROOGE AND MARLEY\"", "label": "SCROOGE AND MARLEY", "shape": "dot", "title": "type: ORGANIZATION\u003cbr\u003edegree: 1\u003cbr\u003eScrooge and Marley is the name of the business enterprise in which both Scrooge and Marley were partners. It remains operational after Marley\u0027s death.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"ST. PAUL\u0027S CHURCHYARD\"", "label": "ST. PAUL\u0027S CHURCHYARD", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 1\u003cbr\u003eSt. Paul\u0027s Churchyard is mentioned as a location, used metaphorically to convey a setting of surprise and historical continuity.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "EVENT", "id": "\"MARLEY\u0027S FUNERAL\"", "label": "MARLEY\u0027S FUNERAL", "shape": "dot", "title": "type: EVENT\u003cbr\u003edegree: 1\u003cbr\u003eMarley\u0027s Funeral is an event marking Marley\u0027s death, attended by Scrooge, who is described as conducting business even on that day.", "value": 22.5}, {"font": {"color": "#111827"}, "group": "EVENT", "id": "\"CHRISTMAS EVE\"", "label": "CHRISTMAS EVE", "shape": "dot", "title": "type: EVENT\u003cbr\u003edegree: 0\u003cbr\u003eChristmas Eve is referenced as a time when Scrooge is working in his office, setting the scene for the story\u0027s beginning.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"SCROOGE\u0027S COUNTING-HOUSE\"", "label": "SCROOGE\u0027S COUNTING-HOUSE", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 0\u003cbr\u003eScrooge\u0027s Counting-House is the location where Scrooge conducts his business and oversees his clerk.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"THE CITY\"", "label": "THE CITY", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 0\u003cbr\u003eThe City is referenced in the setting, with descriptions of the weather and environment outside Scrooge\u0027s office.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "PERSON", "id": "\"THE CLERK\"", "label": "THE CLERK", "shape": "dot", "title": "type: PERSON\u003cbr\u003edegree: 0\u003cbr\u003eThe Clerk works for Scrooge in a small, dismal cell beyond his office, highlighting the working conditions.", "value": 14.0}, {"font": {"color": "#111827"}, "group": "GEO", "id": "\"THE WAREHOUSE DOOR\"", "label": "THE WAREHOUSE DOOR", "shape": "dot", "title": "type: GEO\u003cbr\u003edegree: 0\u003cbr\u003eThe Warehouse Door is part of the Scrooge and Marley business, with Marley\u0027s name still displayed above it.", "value": 14.0}]);
+                  edges = new vis.DataSet([{"from": "\"PROJECT GUTENBERG\"", "title": "Project Gutenberg mentions the United States as a primary location for accessing the eBook without restriction.", "to": "\"UNITED STATES\"", "value": 16.0}, {"from": "\"CHARLES DICKENS\"", "title": "J. B. Lippincott Company published an edition of \u0027A Christmas Carol\u0027 written by Charles Dickens.", "to": "\"J. B. LIPPINCOTT COMPANY\"", "value": 14.0}, {"from": "\"ARTHUR RACKHAM\"", "title": "Arthur Rackham\u0027s illustrations were included in the edition of \u0027A Christmas Carol\u0027 published by J. B. Lippincott Company.", "to": "\"J. B. LIPPINCOTT COMPANY\"", "value": 12.0}, {"from": "\"GHOST OF JACOB MARLEY\"", "title": "Jacob Marley is the ghost of Scrooge\u0027s former business partner who warns him about the consequences of his lifestyle.", "to": "\"EBENEZER SCROOGE\"", "value": 18.0}, {"from": "\"EBENEZER SCROOGE\"", "title": "Bob Cratchit works for Ebenezer Scrooge and is depicted as his underpaid clerk in \u0027A Christmas Carol\u0027.", "to": "\"BOB CRATCHIT\"", "value": 16.0}, {"from": "\"MARLEY\"", "title": "Marley was Scrooge\u0027s business partner and also his sole friend and legatee, indicating a close professional relationship.", "to": "\"SCROOGE\"", "value": 18.0}, {"from": "\"SCROOGE\"", "title": "Scrooge continues to operate the business, Scrooge and Marley, under its original name following Marley\u0027s death.", "to": "\"SCROOGE AND MARLEY\"", "value": 16.0}, {"from": "\"SCROOGE\"", "title": "Scrooge attended Marley\u0027s Funeral and is portrayed as attending to business even on that day, highlighting Scrooge\u0027s character.", "to": "\"MARLEY\u0027S FUNERAL\"", "value": 14.0}, {"from": "\"SCROOGE\"", "title": "St. Paul\u0027s Churchyard is mentioned metaphorically in relation to Scrooge\u0027s story, providing context and setting.", "to": "\"ST. PAUL\u0027S CHURCHYARD\"", "value": 10.0}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0.0,
+            "centralGravity": 0.15,
+            "damping": 0.92,
+            "gravitationalConstant": -2500,
+            "springConstant": 0.02,
+            "springLength": 190
+        },
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.18,
+            "damping": 0.95,
+            "nodeDistance": 10000,
+            "springConstant": 0.03,
+            "springLength": 190
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
