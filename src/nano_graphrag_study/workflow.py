@@ -4,6 +4,7 @@ from pathlib import Path
 from nano_graphrag import GraphRAG, QueryParam
 
 from .config import NanoGraphRAGStudyConfig
+from .experiment import install_local_query_db_debug_patch
 
 
 def ensure_api_key() -> str:
@@ -33,6 +34,8 @@ def load_input_text(config: NanoGraphRAGStudyConfig) -> str:
 
 def build_graph(config: NanoGraphRAGStudyConfig) -> GraphRAG:
     config.working_dir.mkdir(parents=True, exist_ok=True)
+    # Project-side monkey patch: never edit site-packages for debugging hooks.
+    install_local_query_db_debug_patch()
     return GraphRAG(working_dir=str(config.working_dir))
 
 

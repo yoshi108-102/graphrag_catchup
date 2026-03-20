@@ -39,6 +39,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Force re-index even when cache marker exists.",
     )
+    parser.add_argument(
+        "--debug-local-db",
+        action="store_true",
+        help="Enable local_query DB debug prints from project-side wrapper patch.",
+    )
     return parser.parse_args()
 
 
@@ -57,6 +62,10 @@ def ensure_api_key() -> None:
 def main() -> None:
     args = parse_args()
     ensure_api_key()
+
+    if args.debug_local_db:
+        os.environ["NANO_GRAPHRAG_DEBUG_LOCAL_QUERY_DB"] = "1"
+        print("local_query DB debug is enabled")
 
     project_root = Path(__file__).resolve().parents[2]
     input_path = project_root / args.input_path
