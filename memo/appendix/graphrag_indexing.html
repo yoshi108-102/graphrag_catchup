@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraphRAG — Indexing Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1219;
+    --bg3: #161b25;
+    --border: #1e2535;
+    --border2: #2a3448;
+    --text: #c8d4e8;
+    --text2: #6b7fa0;
+    --text3: #3d4f6a;
+    --accent: #4f8ef7;
+    --accent2: #7c5af5;
+    --teal: #2dd4bf;
+    --amber: #f59e0b;
+    --coral: #f87171;
+    --green: #4ade80;
+    --purple: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 32px 80px;
+  }
+
+  /* header */
+  header {
+    margin-bottom: 56px;
+  }
+
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    color: #e8edf5;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  /* pipeline */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* step card */
+  .step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0;
+    position: relative;
+    opacity: 0;
+    transform: translateX(-16px);
+    animation: slideIn 0.5s ease forwards;
+  }
+
+  .step:nth-child(1) { animation-delay: 0.1s; }
+  .step:nth-child(2) { animation-delay: 0.2s; }
+  .step:nth-child(3) { animation-delay: 0.3s; }
+  .step:nth-child(4) { animation-delay: 0.4s; }
+  .step:nth-child(5) { animation-delay: 0.5s; }
+  .step:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes slideIn {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* left spine */
+  .spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+  }
+
+  .step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .line {
+    width: 1px;
+    flex: 1;
+    min-height: 20px;
+    margin-top: 4px;
+  }
+
+  .step:last-child .line { display: none; }
+
+  /* card body */
+  .card {
+    margin: 8px 0 8px 16px;
+    padding: 20px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .card:hover {
+    border-color: var(--border2);
+    background: var(--bg3);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #e0e8f5;
+    letter-spacing: -0.01em;
+  }
+
+  .card-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 12px;
+  }
+
+  /* detail list */
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .detail-item::before {
+    content: '→';
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* output badge */
+  .output-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .output-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    letter-spacing: 0.03em;
+  }
+
+  /* color themes per step */
+  .s1 .step-num { background: rgba(79,142,247,0.15); color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+  .s1 .line { background: linear-gradient(var(--accent), var(--accent2)); opacity: 0.3; }
+  .s1 .card::before { background: var(--accent); }
+  .s1 .card-tag { background: rgba(79,142,247,0.1); color: var(--accent); border: 1px solid rgba(79,142,247,0.2); }
+
+  .s2 .step-num { background: rgba(124,90,245,0.15); color: var(--accent2); border: 1px solid rgba(124,90,245,0.3); }
+  .s2 .line { background: linear-gradient(var(--accent2), var(--teal)); opacity: 0.3; }
+  .s2 .card::before { background: var(--accent2); }
+  .s2 .card-tag { background: rgba(124,90,245,0.1); color: var(--accent2); border: 1px solid rgba(124,90,245,0.2); }
+
+  .s3 .step-num { background: rgba(124,90,245,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+  .s3 .line { background: linear-gradient(var(--purple), var(--teal)); opacity: 0.3; }
+  .s3 .card::before { background: var(--purple); }
+  .s3 .card-tag { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+  .s4 .step-num { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+  .s4 .line { background: linear-gradient(var(--teal), var(--amber)); opacity: 0.3; }
+  .s4 .card::before { background: var(--teal); }
+  .s4 .card-tag { background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+
+  .s5 .step-num { background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.25); }
+  .s5 .line { background: linear-gradient(var(--teal), var(--green)); opacity: 0.3; }
+  .s5 .card::before { background: var(--teal); }
+  .s5 .card-tag { background: rgba(45,212,191,0.08); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+
+  .s6 .step-num { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+  .s6 .line { display: none; }
+  .s6 .card::before { background: var(--green); }
+  .s6 .card-tag { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+
+  /* cost note */
+  .cost-note {
+    margin-top: 48px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(245,158,11,0.25);
+    background: rgba(245,158,11,0.04);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    opacity: 0;
+    animation: slideIn 0.5s 0.8s ease forwards;
+  }
+
+  .cost-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    padding: 2px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* output section */
+  .output-section {
+    margin-top: 48px;
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid rgba(74,222,128,0.2);
+    background: rgba(74,222,128,0.03);
+    opacity: 0;
+    animation: slideIn 0.5s 0.9s ease forwards;
+  }
+
+  .output-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .file-item {
+    padding: 10px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .file-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-graph { background: var(--accent2); }
+  .dot-text { background: var(--teal); }
+  .dot-vec { background: var(--amber); }
+
+  /* footer */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    opacity: 0;
+    animation: slideIn 0.5s 1s ease forwards;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="label">Microsoft GraphRAG</div>
+    <h1>Indexing <span>Flow</span></h1>
+    <p class="subtitle">文書コーパスからナレッジグラフとコミュニティ構造を構築するパイプライン。クエリ時に使う「知識の地図」を事前生成する。</p>
+  </header>
+
+  <div class="pipeline">
+
+    <!-- Step 1 -->
+    <div class="step s1">
+      <div class="spine">
+        <div class="step-num">01</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">テキスト分割</span>
+          <span class="card-tag">TextUnit</span>
+        </div>
+        <p class="card-desc">入力コーパスを固定サイズのチャンク（TextUnit）に分割する。以降の全処理の基本単位。</p>
+        <div class="details">
+          <div class="detail-item">Standardモード: 大チャンク（LLMの文脈窓に合わせて調整）</div>
+          <div class="detail-item">FastGraphRAGモード: 50〜100トークンの小チャンク（共起グラフに最適）</div>
+          <div class="detail-item">チャンクサイズが小さいほどエンティティ抽出精度が上がるが、LLM呼び出しが増える</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step s2">
+      <div class="spine">
+        <div class="step-num">02</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">エンティティ・関係の抽出</span>
+          <span class="card-tag">LLM × N chunks</span>
+        </div>
+        <p class="card-desc">各TextUnitをLLMに読ませ、登場するエンティティ（ノード）と関係（エッジ）を構造化データとして抽出する。</p>
+        <div class="details">
+          <div class="detail-item">エンティティ: 名前・タイプ・説明を抽出</div>
+          <div class="detail-item">関係: 方向・強度・説明を言語で記述</div>
+          <div class="detail-item">Gleaning: 複数ターンで見落としを補完</div>
+          <div class="detail-item">インデックスコスト全体の約75%をここが占める</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step s3">
+      <div class="spine">
+        <div class="step-num">03</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">要約・統合</span>
+          <span class="card-tag">Summarization</span>
+        </div>
+        <p class="card-desc">複数チャンクに登場する同一エンティティ・関係を、LLMが1つの説明に集約する。重複・冗長・矛盾をここで解消する。</p>
+        <div class="details">
+          <div class="detail-item">エンティティ要約: 全出現記述 → 単一の統合プロフィール</div>
+          <div class="detail-item">関係要約: 複数インスタンス → 単一の統合エッジ</div>
+          <div class="detail-item">クレーム抽出（任意）: 主張・事実を構造化して付加</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step s4">
+      <div class="spine">
+        <div class="step-num">04</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">コミュニティ検出</span>
+          <span class="card-tag">Leiden Algorithm</span>
+        </div>
+        <p class="card-desc">完成したグラフに対してLeiden法を適用し、密に繋がったエンティティのグループ（コミュニティ）を階層的に検出する。</p>
+        <div class="details">
+          <div class="detail-item">同一コミュニティ内のエッジが密で、間のエッジが疎になる分割を最適化</div>
+          <div class="detail-item">Level 0: 細粒度（数ノード）→ Level 1, 2…: 粗粒度のテーマまとまり</div>
+          <div class="detail-item">グローバル検索時の「どこを見るか」の構造を決定づける</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step s5">
+      <div class="spine">
+        <div class="step-num">05</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">コミュニティレポート生成</span>
+          <span class="card-tag">Graph2Text</span>
+        </div>
+        <p class="card-desc">各コミュニティのエンティティ・関係をCSVに直列化してLLMへ渡し、自然言語の要約レポートを事前生成する。</p>
+        <div class="details">
+          <div class="detail-item">出力: title / summary / rating（0〜10）/ findings</div>
+          <div class="detail-item">rating = コミュニティの重要度（ローカル検索のタイブレーカーに使用）</div>
+          <div class="detail-item">グラフの位相情報はここでテキストに「平坦化」される（Graph2textの限界）</div>
+          <div class="detail-item">ドメイン特化プロンプトで品質を大幅改善できる（AutoTuning対応）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step s6">
+      <div class="spine">
+        <div class="step-num">06</div>
+        <div class="line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">ベクトルインデックス生成</span>
+          <span class="card-tag">Embeddings</span>
+        </div>
+        <p class="card-desc">エンティティ説明文とテキストチャンクをembeddingしてベクトルDBに格納する。ローカル検索の入口（類似検索）に使用。</p>
+        <div class="details">
+          <div class="detail-item">デフォルトストア: LanceDB</div>
+          <div class="detail-item">エンティティ説明・TextUnit・コミュニティレポートをベクトル化</div>
+          <div class="detail-item">グラフ構造検索とベクトル検索を組み合わせることでローカル検索が成立する</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pipeline -->
+
+  <!-- cost note -->
+  <div class="cost-note">
+    <span class="cost-icon">WARN</span>
+    <div>
+      <strong style="color: var(--amber); font-weight: 500;">コストに注意：</strong>
+      エンティティ抽出（Step 02）がインデックスコストの約75%を占める。大規模コーパスでは事前にFastGraphRAGモードで試作し、品質を確認してからStandardモードに移行することを推奨。
+    </div>
+  </div>
+
+  <!-- output artifacts -->
+  <div class="output-section">
+    <div class="output-section-title">// Output Artifacts</div>
+    <div class="files-grid">
+      <div class="file-item"><span class="file-dot dot-graph"></span>entities.parquet</div>
+      <div class="file-item"><span class="file-dot dot-graph"></span>relationships.parquet</div>
+      <div class="file-item"><span class="file-dot dot-graph"></span>communities.parquet</div>
+      <div class="file-item"><span class="file-dot dot-graph"></span>community_reports.parquet</div>
+      <div class="file-item"><span class="file-dot dot-text"></span>text_units.parquet</div>
+      <div class="file-item"><span class="file-dot dot-text"></span>documents.parquet</div>
+      <div class="file-item"><span class="file-dot dot-vec"></span>lancedb/ (vectors)</div>
+    </div>
+  </div>
+
+  <footer>
+    <span>MS GraphRAG — Indexing Pipeline</span>
+    <span>v2.7.0 · 2025</span>
+  </footer>
+
+</div>
+</body>
+</html>
