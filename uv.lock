@@ -1110,6 +1110,7 @@ dependencies = [
     { name = "nano-graphrag" },
     { name = "networkx" },
     { name = "pyvis" },
+    { name = "scikit-learn" },
     { name = "setuptools" },
 ]
 
@@ -1119,6 +1120,7 @@ requires-dist = [
     { name = "nano-graphrag", specifier = ">=0.0.8" },
     { name = "networkx", specifier = ">=3.6.1" },
     { name = "pyvis", specifier = ">=0.3.2" },
+    { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "setuptools", specifier = ">=70,<81" },
 ]
 
